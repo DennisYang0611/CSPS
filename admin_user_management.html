@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工单系统 - 用户管理</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7f9;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 220px;
+            background-color: #2c3e50;
+            color: #fff;
+            padding-top: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo h2 {
+            margin: 0;
+            color: #fff;
+        }
+        .nav-menu {
+            padding: 0;
+            list-style: none;
+        }
+        .nav-item {
+            margin: 5px 0;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            color: #fff;
+            border-left: 3px solid #4a6cf7;
+        }
+        .nav-link i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .page-title {
+            font-size: 24px;
+            margin: 0;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .user-info span {
+            display: block;
+        }
+        .name {
+            font-weight: bold;
+        }
+        .role {
+            font-size: 12px;
+            color: #888;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 18px;
+            margin: 0;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-primary {
+            background-color: #4a6cf7;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #3a5bd9;
+        }
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #ddd;
+        }
+        .btn-outline:hover {
+            background-color: #f5f5f5;
+        }
+        .filter-bar {
+            display: flex;
+            margin-bottom: 20px;
+            align-items: center;
+            gap: 15px;
+        }
+        .search-box {
+            display: flex;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            flex: 1;
+        }
+        .search-box input {
+            flex: 1;
+            border: none;
+            padding: 10px;
+            outline: none;
+        }
+        .search-box button {
+            background-color: #4a6cf7;
+            color: white;
+            border: none;
+            padding: 0 15px;
+            cursor: pointer;
+        }
+        .dropdown {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px 12px;
+            background-color: #fff;
+            min-width: 120px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            font-weight: 600;
+            color: #555;
+            background-color: #f8f9fa;
+            white-space: nowrap;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-active {
+            background-color: #e6f7e6;
+            color: #28a745;
+        }
+        .status-inactive {
+            background-color: #f8f9fa;
+            color: #6c757d;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #ffc107;
+        }
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-name {
+            font-weight: 500;
+        }
+        .user-email {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .action-cell {
+            white-space: nowrap;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #4a6cf7;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        .action-btn:hover {
+            text-decoration: underline;
+        }
+        .delete-btn {
+            color: #dc3545;
+        }
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            gap: 5px;
+        }
+        .page-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            background-color: #fff;
+        }
+        .page-item.active {
+            background-color: #4a6cf7;
+            color: white;
+            border-color: #4a6cf7;
+        }
+        .page-item:hover:not(.active) {
+            background-color: #f0f0f0;
+        }
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title {
+            margin: 0;
+            font-size: 18px;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-group select {
+            height: 38px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h2>工单系统</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="admin_dashboard.html" class="nav-link">
+                        <i>📊</i> 工单总览
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="admin_user_management.html" class="nav-link active">
+                        <i>👥</i> 用户管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="admin_support_management.html" class="nav-link">
+                        <i>👨‍💼</i> 客服管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="admin_reports.html" class="nav-link">
+                        <i>📈</i> 数据统计
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="admin_settings.html" class="nav-link">
+                        <i>⚙️</i> 系统设置
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="login.html" class="nav-link">
+                        <i>🚪</i> 退出登录
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h1 class="page-title">用户管理</h1>
+                <div class="user-profile">
+                    <img src="https://via.placeholder.com/40" alt="管理员头像">
+                    <div class="user-info">
+                        <span class="name">李四</span>
+                        <span class="role">系统管理员</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">用户列表</h2>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="add-user-btn">添加用户</button>
+                        <button class="btn btn-outline">导出数据</button>
+                    </div>
+                </div>
+                
+                <div class="filter-bar">
+                    <div class="search-box">
+                        <input type="text" placeholder="搜索用户名、邮箱、电话...">
+                        <button>🔍</button>
+                    </div>
+                    <select class="dropdown">
+                        <option>所有状态</option>
+                        <option>激活</option>
+                        <option>未激活</option>
+                        <option>已禁用</option>
+                    </select>
+                    <select class="dropdown">
+                        <option>所有用户类型</option>
+                        <option>个人用户</option>
+                        <option>企业用户</option>
+                        <option>VIP用户</option>
+                    </select>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>用户</th>
+                            <th>注册时间</th>
+                            <th>用户类型</th>
+                            <th>工单数</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <img src="https://via.placeholder.com/35" alt="用户头像" class="user-avatar">
+                                    <div>
+                                        <div class="user-name">张三</div>
+                                        <div class="user-email">zhangsan@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>2023-01-15</td>
+                            <td>企业会员</td>
+                            <td>8</td>
+                            <td><span class="status-badge status-active">已激活</span></td>
+                            <td class="action-cell">
+                                <button class="action-btn">编辑</button>
+                                <button class="action-btn">详情</button>
+                                <button class="action-btn delete-btn">删除</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <img src="https://via.placeholder.com/35" alt="用户头像" class="user-avatar">
+                                    <div>
+                                        <div class="user-name">李明</div>
+                                        <div class="user-email">liming@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>2023-02-22</td>
+                            <td>个人用户</td>
+                            <td>3</td>
+                            <td><span class="status-badge status-active">已激活</span></td>
+                            <td class="action-cell">
+                                <button class="action-btn">编辑</button>
+                                <button class="action-btn">详情</button>
+                                <button class="action-btn delete-btn">删除</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <img src="https://via.placeholder.com/35" alt="用户头像" class="user-avatar">
+                                    <div>
+                                        <div class="user-name">王丽</div>
+                                        <div class="user-email">wangli@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>2023-03-08</td>
+                            <td>VIP用户</td>
+                            <td>12</td>
+                            <td><span class="status-badge status-active">已激活</span></td>
+                            <td class="action-cell">
+                                <button class="action-btn">编辑</button>
+                                <button class="action-btn">详情</button>
+                                <button class="action-btn delete-btn">删除</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <img src="https://via.placeholder.com/35" alt="用户头像" class="user-avatar">
+                                    <div>
+                                        <div class="user-name">刘强</div>
+                                        <div class="user-email">liuqiang@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>2023-03-15</td>
+                            <td>个人用户</td>
+                            <td>5</td>
+                            <td><span class="status-badge status-pending">待激活</span></td>
+                            <td class="action-cell">
+                                <button class="action-btn">编辑</button>
+                                <button class="action-btn">详情</button>
+                                <button class="action-btn delete-btn">删除</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <img src="https://via.placeholder.com/35" alt="用户头像" class="user-avatar">
+                                    <div>
+                                        <div class="user-name">赵梅</div>
+                                        <div class="user-email">zhaomei@example.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>2023-04-01</td>
+                            <td>企业会员</td>
+                            <td>7</td>
+                            <td><span class="status-badge status-inactive">已禁用</span></td>
+                            <td class="action-cell">
+                                <button class="action-btn">编辑</button>
+                                <button class="action-btn">详情</button>
+                                <button class="action-btn delete-btn">删除</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="pagination">
+                    <div class="page-item">«</div>
+                    <div class="page-item active">1</div>
+                    <div class="page-item">2</div>
+                    <div class="page-item">3</div>
+                    <div class="page-item">4</div>
+                    <div class="page-item">5</div>
+                    <div class="page-item">»</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加用户弹窗 -->
+    <div class="modal-backdrop" id="user-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">添加新用户</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="user-name">姓名</label>
+                    <input type="text" id="user-name" class="form-control" placeholder="请输入用户姓名">
+                </div>
+                <div class="form-group">
+                    <label for="user-email">邮箱</label>
+                    <input type="email" id="user-email" class="form-control" placeholder="请输入邮箱地址">
+                </div>
+                <div class="form-group">
+                    <label for="user-phone">电话</label>
+                    <input type="tel" id="user-phone" class="form-control" placeholder="请输入电话号码">
+                </div>
+                <div class="form-group">
+                    <label for="user-type">用户类型</label>
+                    <select id="user-type" class="form-control">
+                        <option value="">请选择用户类型</option>
+                        <option value="personal">个人用户</option>
+                        <option value="enterprise">企业会员</option>
+                        <option value="vip">VIP用户</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="user-status">状态</label>
+                    <select id="user-status" class="form-control">
+                        <option value="active">已激活</option>
+                        <option value="pending">待激活</option>
+                        <option value="inactive">已禁用</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="user-password">初始密码</label>
+                    <input type="password" id="user-password" class="form-control" placeholder="请设置初始密码">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-btn">取消</button>
+                <button class="btn btn-primary" id="save-user-btn">保存</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

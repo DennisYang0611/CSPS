@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工单系统 - 用户中心</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7f9;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        header {
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+        .logo h2 {
+            margin: 0;
+            color: #4a6cf7;
+        }
+        .user-menu {
+            display: flex;
+            align-items: center;
+        }
+        .user-menu img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .user-menu span {
+            margin-right: 15px;
+        }
+        .create-ticket {
+            background-color: #4a6cf7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .create-ticket:hover {
+            background-color: #3a5bd9;
+        }
+        .sidebar {
+            width: 300px;
+            background-color: #fff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            padding-top: 80px;
+            overflow-y: auto;
+        }
+        .ticket-filters {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .ticket-filters h3 {
+            margin-top: 0;
+        }
+        .filter-options {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .filter-options button {
+            background: none;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            margin-right: 10px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .filter-options button.active {
+            background-color: #4a6cf7;
+            color: white;
+            border-color: #4a6cf7;
+        }
+        .ticket-list {
+            padding: 0;
+        }
+        .ticket-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .ticket-item:hover {
+            background-color: #f9f9f9;
+        }
+        .ticket-item.active {
+            background-color: #f0f4ff;
+            border-left: 3px solid #4a6cf7;
+        }
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .ticket-id {
+            color: #888;
+            font-size: 12px;
+        }
+        .ticket-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .ticket-status {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background-color: #ffeecc;
+            color: #ff9900;
+        }
+        .ticket-status.resolved {
+            background-color: #e6f7e6;
+            color: #28a745;
+        }
+        .ticket-status.processing {
+            background-color: #e6f0ff;
+            color: #4a6cf7;
+        }
+        .ticket-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #888;
+        }
+        .chat-area {
+            flex: 1;
+            padding: 80px 20px 70px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .chat-header-main {
+            flex: 1;
+        }
+        .resolve-ticket-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .resolve-ticket-btn:hover {
+            background-color: #218838;
+        }
+        .rating-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        .rating-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .chat-header h2 {
+            margin: 0 0 5px;
+        }
+        .chat-header p {
+            margin: 0;
+            color: #888;
+            font-size: 14px;
+        }
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .message {
+            max-width: 75%;
+            margin-bottom: 20px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            position: relative;
+        }
+        .message-user {
+            background-color: #4a6cf7;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+        .message-support {
+            background-color: #f1f1f1;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        .message-time {
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+            text-align: right;
+        }
+        .message-user .message-time {
+            color: rgba(255,255,255,0.8);
+        }
+        .chat-input {
+            position: fixed;
+            bottom: 0;
+            left: 300px;
+            right: 0;
+            background-color: #fff;
+            padding: 15px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+        }
+        .chat-input textarea {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-right: 10px;
+            resize: none;
+            height: 40px;
+        }
+        .attach-btn, .send-btn {
+            background-color: #4a6cf7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .attach-btn {
+            background-color: #f1f1f1;
+            color: #666;
+            margin-right: 10px;
+        }
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #888;
+            text-align: center;
+        }
+        .empty-state img {
+            width: 150px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        /* 满意度评价样式 */
+        .satisfaction-rating {
+            display: flex;
+            margin-top: 5px;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .satisfaction-rating span {
+            font-size: 12px;
+            color: #888;
+            margin-right: 8px;
+        }
+        .rating-btn {
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 3px 8px;
+            margin-left: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .rating-btn:hover {
+            border-color: #4a6cf7;
+            color: #4a6cf7;
+        }
+        .rating-btn.satisfied {
+            background-color: #f6ffed;
+            border-color: #52c41a;
+            color: #52c41a;
+        }
+        .rating-btn.unsatisfied {
+            background-color: #fff2f0;
+            border-color: #ff4d4f;
+            color: #ff4d4f;
+        }
+        /* 已读未读状态 */
+        .message-status {
+            font-size: 11px;
+            color: #888;
+            text-align: right;
+            margin-top: 2px;
+        }
+        /* 处理流程样式 */
+        .process-flow {
+            margin: 20px 15px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            font-size: 13px;
+        }
+        .process-flow h3 {
+            margin-top: 0;
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .process-step {
+            display: flex;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        .process-step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .step-info {
+            flex: 1;
+        }
+        .step-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .step-position {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 3px;
+        }
+        .step-time {
+            font-size: 11px;
+            color: #aaa;
+        }
+        .step-rating {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+        }
+        .step-rating i {
+            color: #faad14;
+            margin-right: 3px;
+        }
+        /* 用户信息展示 */
+        .user-info-panel {
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .user-info-panel h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #555;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-info-panel h3 button {
+            background: none;
+            border: none;
+            color: #4a6cf7;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: normal;
+        }
+        .info-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .info-label {
+            width: 100px;
+            color: #888;
+            font-size: 14px;
+        }
+        .info-value {
+            flex: 1;
+            font-size: 14px;
+        }
+        /* 投诉评价表单 */
+        .complaint-form {
+            margin-top: 20px;
+        }
+        .complaint-form h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 15px;
+            color: #555;
+        }
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        /* 员工信息卡片样式 */
+        .employee-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            width: 400px;
+            overflow: hidden;
+        }
+        .employee-header {
+            background: #4a6cf7;
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .employee-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            padding: 2px;
+        }
+        .employee-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .employee-position {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .employee-info {
+            padding: 20px;
+        }
+        .info-group {
+            margin-bottom: 15px;
+        }
+        .info-label {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            color: #333;
+            font-size: 15px;
+        }
+        .employee-stats {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            text-align: center;
+        }
+        .stat-item {
+            padding: 10px;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4a6cf7;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+        }
+        .modal-body {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .modal-btn-cancel {
+            background-color: #f1f1f1;
+            color: #666;
+        }
+        .modal-btn-primary {
+            background-color: #4a6cf7;
+            color: white;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            border-color: #4a6cf7;
+            outline: none;
+        }
+    </style>
+    <script>
+        // 员工数据
+        const employeeData = {
+            '李四': {
+                avatar: 'https://via.placeholder.com/60',
+                position: '客服专员',
+                department: '客户服务部',
+                employeeId: 'CS001',
+                email: 'lisi@company.com',
+                phone: '13800138000',
+                joinDate: '2022-03-15',
+                stats: {
+                    resolvedTickets: 128,
+                    avgResponseTime: '15分钟',
+                    satisfaction: '98%'
+                }
+            },
+            '王五': {
+                avatar: 'https://via.placeholder.com/60',
+                position: '技术支持',
+                department: '技术部',
+                employeeId: 'TS002',
+                email: 'wangwu@company.com',
+                phone: '13900139000',
+                joinDate: '2021-08-01',
+                stats: {
+                    resolvedTickets: 256,
+                    avgResponseTime: '20分钟',
+                    satisfaction: '95%'
+                }
+            }
+        };
+
+        function showEmployeeInfo(name) {
+            const employee = employeeData[name];
+            if (!employee) return;
+
+            const modalHtml = `
+                <div class="employee-card">
+                    <div class="employee-header">
+                        <img src="${employee.avatar}" alt="${name}" class="employee-avatar">
+                        <div>
+                            <h3 class="employee-name">${name}</h3>
+                            <div class="employee-position">${employee.position}</div>
+                        </div>
+                    </div>
+                    <div class="employee-info">
+                        <div class="info-group">
+                            <div class="info-label">部门</div>
+                            <div class="info-value">${employee.department}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">工号</div>
+                            <div class="info-value">${employee.employeeId}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">邮箱</div>
+                            <div class="info-value">${employee.email}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">电话</div>
+                            <div class="info-value">${employee.phone}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">入职时间</div>
+                            <div class="info-value">${employee.joinDate}</div>
+                        </div>
+                    </div>
+                    <div class="employee-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${employee.stats.resolvedTickets}</div>
+                            <div class="stat-label">已解决工单</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${employee.stats.avgResponseTime}</div>
+                            <div class="stat-label">平均响应时间</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${employee.stats.satisfaction}</div>
+                            <div class="stat-label">满意度</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'flex';
+            modal.innerHTML = modalHtml;
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+
+            document.body.appendChild(modal);
+        }
+
+        function showResolveModal() {
+            document.getElementById('resolveModal').style.display = 'flex';
+        }
+
+        function hideResolveModal() {
+            document.getElementById('resolveModal').style.display = 'none';
+        }
+
+        function confirmResolveTicket() {
+            // 获取表单数据
+            const resolution = document.getElementById('resolution').value;
+            const satisfaction = document.querySelector('input[name="satisfaction"]:checked')?.value;
+            if (!resolution || !satisfaction) {
+                alert('请填写解决方案描述并选择满意度评价');
+                return;
+            }
+
+            // 这里可以添加向后端发送数据的逻辑
+            console.log('工单已解决', {
+                resolution,
+                satisfaction
+            });
+
+            // 更新工单状态显示
+            const statusElement = document.querySelector('.chat-header p');
+            statusElement.textContent = statusElement.textContent.replace('处理中', '已解决');
+            
+            // 隐藏解决按钮
+            document.querySelector('.resolve-ticket-btn').style.display = 'none';
+
+            // 关闭模态框
+            hideResolveModal();
+
+            // 显示成功提示
+            alert('工单已成功解决！');
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h2>工单系统</h2>
+        </div>
+        <button class="create-ticket">+ 创建新工单</button>
+        <div class="user-menu">
+            <img src="https://via.placeholder.com/35" alt="用户头像">
+            <span>张三</span>
+            <a href="login.html">退出</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="ticket-filters">
+                <h3>我的工单</h3>
+                <div class="filter-options">
+                    <button class="active">全部</button>
+                    <button>进行中</button>
+                    <button>已解决</button>
+                </div>
+            </div>
+            <div class="ticket-list">
+                <!-- 工单列表项 -->
+            </div>
+            <div class="process-flow">
+                <h3>处理流程</h3>
+                <div class="process-step">
+                    <div class="step-info">
+                        <div class="step-name" onclick="showEmployeeInfo('李四')" style="cursor: pointer;">李四</div>
+                        <div class="step-position">客服专员</div>
+                        <div class="step-time">2023-07-15 14:32 - 14:40</div>
+                    </div>
+                    <div class="step-rating">
+                        <i>★</i> 满意
+                    </div>
+                </div>
+                <div class="process-step">
+                    <div class="step-info">
+                        <div class="step-name" onclick="showEmployeeInfo('王五')" style="cursor: pointer;">王五</div>
+                        <div class="step-position">技术支持</div>
+                        <div class="step-time">2023-07-15 14:40 - 至今</div>
+                    </div>
+                    <div class="step-rating">
+                        <i>★</i> 处理中
+                    </div>
+                </div>
+                <div class="ticket-item active">
+                    <div class="ticket-header">
+                        <span class="ticket-id">#TK-001</span>
+                        <span class="ticket-status processing">处理中</span>
+                    </div>
+                    <div class="ticket-title">产品激活码无法使用</div>
+                    <div class="ticket-meta">
+                        <span>2023-07-15</span>
+                        <span>优先级: 中</span>
+                    </div>
+                </div>
+                <div class="ticket-item">
+                    <div class="ticket-header">
+                        <span class="ticket-id">#TK-002</span>
+                        <span class="ticket-status">待处理</span>
+                    </div>
+                    <div class="ticket-title">账户无法登录</div>
+                    <div class="ticket-meta">
+                        <span>2023-07-14</span>
+                        <span>优先级: 高</span>
+                    </div>
+                </div>
+                <div class="ticket-item">
+                    <div class="ticket-header">
+                        <span class="ticket-id">#TK-003</span>
+                        <span class="ticket-status resolved">已解决</span>
+                    </div>
+                    <div class="ticket-title">如何修改个人信息</div>
+                    <div class="ticket-meta">
+                        <span>2023-07-10</span>
+                        <span>优先级: 低</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-header-main">
+                    <h2>产品激活码无法使用</h2>
+                    <p>工单编号: #TK-001 | 创建时间: 2023-07-15 | 状态: 处理中</p>
+                </div>
+                <button class="resolve-ticket-btn" onclick="showResolveModal()">解决工单</button>
+            </div>
+
+            <!-- 解决工单模态框 -->
+            <div id="resolveModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>解决工单</h3>
+                        <button class="modal-close" onclick="hideResolveModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="resolution">解决方案描述</label>
+                            <textarea id="resolution" class="form-control" rows="4" placeholder="请描述问题的解决方案..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>满意度评价</label>
+                            <div class="rating-options">
+                                <label><input type="radio" name="satisfaction" value="very-satisfied"> 非常满意</label>
+                                <label><input type="radio" name="satisfaction" value="satisfied"> 满意</label>
+                                <label><input type="radio" name="satisfaction" value="neutral"> 一般</label>
+                                <label><input type="radio" name="satisfaction" value="unsatisfied"> 不满意</label>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn modal-btn-cancel" onclick="hideResolveModal()">取消</button>
+                        <button class="modal-btn modal-btn-primary" onclick="confirmResolveTicket()">确认解决</button>
+                    </div>
+                </div>
+            </div>
+            
+
+            
+            <div class="user-info-panel">
+                <h3>
+                    基本信息
+                    <button id="edit-info-btn">编辑</button>
+                </h3>
+                <div class="info-row">
+                    <div class="info-label">姓名:</div>
+                    <div class="info-value">张三</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">联系电话:</div>
+                    <div class="info-value">138****1234</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">邮箱:</div>
+                    <div class="info-value">zhangsan@example.com</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">会员等级:</div>
+                    <div class="info-value">黄金会员</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">注册时间:</div>
+                    <div class="info-value">2022-05-10</div>
+                </div>
+            </div>
+            <div class="messages">
+                <div class="message message-user">
+                    <div class="message-content">您好，我购买的产品激活码输入后提示无效，请问如何解决？</div>
+                    <div class="message-time">2023-07-15 14:30</div>
+                </div>
+                <div class="message message-support">
+                    <div class="message-content">您好，感谢您联系我们。请问您是在哪里购买的激活码，可以提供一下订单号吗？</div>
+                    <div class="message-time">2023-07-15 14:35</div>
+                    <div class="message-status">已读 14:36</div>
+                    <div class="satisfaction-rating">
+                        <span>此回复是否有帮助？</span>
+                        <button class="rating-btn satisfied">满意</button>
+                        <button class="rating-btn">不满意</button>
+                    </div>
+                </div>
+                <div class="message message-user">
+                    <div class="message-content">我是在官网购买的，订单号是: ORD-20230715-8901。激活码是: XXXX-XXXX-XXXX-XXXX</div>
+                    <div class="message-time">2023-07-15 14:38</div>
+                </div>
+                <div class="message message-support">
+                    <div class="message-content">感谢您提供信息。我已查询到您的订单，发现您购买的是企业版，但尝试在个人版软件中激活。请下载企业版软件后再使用此激活码。您可以从我们的官网下载页面获取正确的版本。</div>
+                    <div class="message-time">2023-07-15 14:42</div>
+                    <div class="message-status">已读 14:43</div>
+                    <div class="satisfaction-rating">
+                        <span>此回复是否有帮助？</span>
+                        <button class="rating-btn satisfied">满意</button>
+                        <button class="rating-btn">不满意</button>
+                    </div>
+                </div>
+                <div class="message message-user">
+                    <div class="message-content">原来如此，没想到是版本问题。我现在就去下载企业版试试。谢谢您的帮助！</div>
+                    <div class="message-time">2023-07-15 14:45</div>
+                </div>
+                <div class="message message-support">
+                    <div class="message-content">不客气！如果您下载后仍有任何问题，请随时联系我们。祝您使用愉快！</div>
+                    <div class="message-time">2023-07-15 14:47</div>
+                    <div class="message-status">已读 14:48</div>
+                    <div class="satisfaction-rating">
+                        <span>此回复是否有帮助？</span>
+                        <button class="rating-btn satisfied">满意</button>
+                        <button class="rating-btn">不满意</button>
+                    </div>
+                </div>
+                
+                <div class="complaint-form">
+                    <h4>对本次服务的评价</h4>
+                    <button class="create-ticket" id="open-complaint-btn" style="margin-top: 10px;">提交评价</button>
+                </div>
+            </div>
+            <div class="chat-input">
+                <button class="attach-btn">📎</button>
+                <textarea placeholder="输入您的回复..."></textarea>
+                <button class="send-btn">➤</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 创建新工单模态框 -->
+    <div id="create-ticket-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>创建新工单</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="ticket-title">工单标题 <span style="color: #ff4d4f;">*</span></label>
+                    <input type="text" id="ticket-title" class="form-control" placeholder="请输入工单标题" required>
+                </div>
+                <div class="form-group">
+                    <label for="ticket-type">工单类型 <span style="color: #ff4d4f;">*</span></label>
+                    <select id="ticket-type" class="form-control" required>
+                        <option value="">请选择工单类型</option>
+                        <option value="technical">技术问题</option>
+                        <option value="billing">账单问题</option>
+                        <option value="account">账户问题</option>
+                        <option value="product">产品咨询</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ticket-priority">优先级</label>
+                    <select id="ticket-priority" class="form-control">
+                        <option value="low">低</option>
+                        <option value="medium" selected>中</option>
+                        <option value="high">高</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ticket-description">问题描述 <span style="color: #ff4d4f;">*</span></label>
+                    <textarea id="ticket-description" class="form-control" rows="5" placeholder="请详细描述您遇到的问题..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="ticket-attachment">附件</label>
+                    <input type="file" id="ticket-attachment" class="form-control">
+                    <small style="color: #888; font-size: 12px;">支持的文件格式: jpg, png, pdf, doc, docx, zip (最大10MB)</small>
+                </div>
+                <div class="form-group">
+                    <label for="contact-preference">联系方式偏好</label>
+                    <select id="contact-preference" class="form-control">
+                        <option value="system">系统消息</option>
+                        <option value="email">电子邮件</option>
+                        <option value="phone">电话</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel">取消</button>
+                <button class="modal-btn modal-btn-primary">提交工单</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 投诉评价模态框 -->
+    <div id="complaint-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>服务评价</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>总体满意度</label>
+                    <div style="display: flex; gap: 10px;">
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="overall-satisfaction" value="5" checked>
+                            <span style="margin-left: 5px;">非常满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="overall-satisfaction" value="4">
+                            <span style="margin-left: 5px;">满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="overall-satisfaction" value="3">
+                            <span style="margin-left: 5px;">一般</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="overall-satisfaction" value="2">
+                            <span style="margin-left: 5px;">不满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="overall-satisfaction" value="1">
+                            <span style="margin-left: 5px;">非常不满意</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>响应速度</label>
+                    <div style="display: flex; gap: 10px;">
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="response-speed" value="5" checked>
+                            <span style="margin-left: 5px;">非常满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="response-speed" value="4">
+                            <span style="margin-left: 5px;">满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="response-speed" value="3">
+                            <span style="margin-left: 5px;">一般</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="response-speed" value="2">
+                            <span style="margin-left: 5px;">不满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="response-speed" value="1">
+                            <span style="margin-left: 5px;">非常不满意</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>解决效率</label>
+                    <div style="display: flex; gap: 10px;">
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="resolution-efficiency" value="5" checked>
+                            <span style="margin-left: 5px;">非常满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="resolution-efficiency" value="4">
+                            <span style="margin-left: 5px;">满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="resolution-efficiency" value="3">
+                            <span style="margin-left: 5px;">一般</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="resolution-efficiency" value="2">
+                            <span style="margin-left: 5px;">不满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="resolution-efficiency" value="1">
+                            <span style="margin-left: 5px;">非常不满意</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>服务态度</label>
+                    <div style="display: flex; gap: 10px;">
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="service-attitude" value="5" checked>
+                            <span style="margin-left: 5px;">非常满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="service-attitude" value="4">
+                            <span style="margin-left: 5px;">满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="service-attitude" value="3">
+                            <span style="margin-left: 5px;">一般</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="service-attitude" value="2">
+                            <span style="margin-left: 5px;">不满意</span>
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="radio" name="service-attitude" value="1">
+                            <span style="margin-left: 5px;">非常不满意</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="complaint-comments">评价意见</label>
+                    <textarea id="complaint-comments" class="form-control" rows="4" placeholder="请输入您的评价或建议..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel">取消</button>
+                <button class="modal-btn modal-btn-primary">提交评价</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 模态框功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取模态框元素
+            const createTicketModal = document.getElementById('create-ticket-modal');
+            const complaintModal = document.getElementById('complaint-modal');
+            
+            // 获取按钮元素
+            const createTicketBtn = document.querySelector('.create-ticket');
+            const openComplaintBtn = document.getElementById('open-complaint-btn');
+            
+            // 获取关闭按钮
+            const closeButtons = document.querySelectorAll('.modal-close, .modal-btn-cancel');
+            
+            // 打开创建工单模态框
+            createTicketBtn.addEventListener('click', function() {
+                createTicketModal.style.display = 'flex';
+            });
+            
+            // 打开投诉评价模态框
+            openComplaintBtn.addEventListener('click', function() {
+                complaintModal.style.display = 'flex';
+            });
+            
+            // 关闭模态框
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    createTicketModal.style.display = 'none';
+                    complaintModal.style.display = 'none';
+                });
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                if (event.target === createTicketModal) {
+                    createTicketModal.style.display = 'none';
+                }
+                if (event.target === complaintModal) {
+                    complaintModal.style.display = 'none';
+                }
+            });
+            
+            // 满意度评价按钮功能
+            const ratingButtons = document.querySelectorAll('.rating-btn');
+            ratingButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除同级按钮的选中状态
+                    const siblingButtons = this.parentElement.querySelectorAll('.rating-btn');
+                    siblingButtons.forEach(btn => btn.classList.remove('satisfied', 'unsatisfied'));
+                    
+                    // 添加当前按钮的选中状态
+                    if (this.textContent === '满意') {
+                        this.classList.add('satisfied');
+                    } else if (this.textContent === '不满意') {
+                        this.classList.add('unsatisfied');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

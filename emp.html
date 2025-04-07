@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工单系统 - 客服工作台</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7f9;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        header {
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+        .logo h2 {
+            margin: 0;
+            color: #4a6cf7;
+        }
+        .user-menu {
+            display: flex;
+            align-items: center;
+        }
+        .user-menu img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .user-menu span {
+            margin-right: 15px;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #fff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            padding-top: 70px;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+        }
+        .status-filters {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .status-filters h3 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .customer-navigation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .nav-btn {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+        .nav-btn:hover {
+            background-color: #4a6cf7;
+            color: white;
+            border-color: #4a6cf7;
+        }
+        .current-customer {
+            font-weight: bold;
+            color: #4a6cf7;
+            padding: 0 10px;
+        }
+        .filter-options button {
+            background: none;
+            border: 1px solid #ddd;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .filter-options button.active {
+            background-color: #4a6cf7;
+            color: white;
+            border-color: #4a6cf7;
+        }
+        .ticket-list {
+            padding: 0;
+        }
+        .ticket-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: relative;
+        }
+        .ticket-item:hover {
+            background-color: #f9f9f9;
+        }
+        .ticket-item.active {
+            background-color: #f0f4ff;
+            border-left: 3px solid #4a6cf7;
+        }
+        .priority-indicator {
+            width: 4px;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+        }
+        .priority-high {
+            background-color: #ff4d4f;
+        }
+        .priority-medium {
+            background-color: #ff9900;
+        }
+        .priority-low {
+            background-color: #52c41a;
+        }
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .ticket-id {
+            color: #888;
+            font-size: 12px;
+        }
+        .ticket-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .ticket-status {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background-color: #ffeecc;
+            color: #ff9900;
+        }
+        .ticket-status.resolved {
+            background-color: #e6f7e6;
+            color: #28a745;
+        }
+        .ticket-status.processing {
+            background-color: #e6f0ff;
+            color: #4a6cf7;
+        }
+        .ticket-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #888;
+        }
+        .mark-unread-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: none;
+        }
+        .ticket-item:hover .mark-unread-btn {
+            display: block;
+        }
+        .mark-unread-btn:hover {
+            background-color: #f0f4ff;
+            color: #4a6cf7;
+        }
+        .ticket-item.unread {
+            background-color: #f0f4ff;
+        }
+        .ticket-item.unread::before {
+            content: "";
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #4a6cf7;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 80px 0 0 0;
+            display: flex;
+        }
+        .chat-area {
+            flex: 1;
+            border-right: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ticket-info h2 {
+            margin: 0 0 5px;
+            font-size: 18px;
+        }
+        .ticket-info p {
+            margin: 0;
+            color: #888;
+            font-size: 13px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .action-button {
+            background-color: #f1f1f1;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+        }
+        .action-button i {
+            margin-right: 5px;
+        }
+        .transfer-btn {
+            background-color: #fff0f6;
+            color: #eb2f96;
+        }
+        .escalate-btn {
+            background-color: #fff2e8;
+            color: #fa541c;
+        }
+        .resolve-btn {
+            background-color: #f6ffed;
+            color: #52c41a;
+        }
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .message {
+            max-width: 75%;
+            margin-bottom: 20px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            position: relative;
+        }
+        .message-wrapper {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .message-select {
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        .message-customer {
+            background-color: #f1f1f1;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        .message-support {
+            background-color: #4a6cf7;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+        .message-internal {
+            background-color: #fffbe6;
+            color: #faad14;
+            border: 1px dashed #ffd666;
+            border-radius: 4px;
+            font-style: italic;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .message.selected {
+            box-shadow: 0 0 0 2px #4a6cf7;
+        }
+        .message-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .message-sender {
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .message-time {
+            font-size: 11px;
+            color: #888;
+        }
+        .message-support .message-time {
+            color: rgba(255,255,255,0.8);
+        }
+        .chat-input {
+            padding: 15px;
+            background-color: #fff;
+            border-top: 1px solid #eee;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        .toolbar {
+            display: flex;
+            padding: 8px 0;
+            gap: 10px;
+            justify-content: space-between;
+        }
+        .toolbar-left {
+            display: flex;
+            gap: 10px;
+        }
+        .toolbar-right {
+            display: flex;
+            gap: 10px;
+        }
+        .toolbar button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            padding: 5px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        .toolbar button:hover {
+            background-color: #f0f4ff;
+        }
+        .toolbar button.active {
+            background-color: #e6f0ff;
+            color: #4a6cf7;
+        }
+        .toolbar button i {
+            margin-right: 5px;
+        }
+        .toolbar button.save-to-kb {
+            background-color: #f0f4ff;
+            color: #4a6cf7;
+            border: 1px solid #d6e4ff;
+        }
+        .toolbar button.save-to-kb:hover {
+            background-color: #d6e4ff;
+        }
+        .toolbar button.save-to-kb.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+        }
+        .modal-body {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .modal-btn-cancel {
+            background-color: #f1f1f1;
+            color: #666;
+        }
+        .modal-btn-primary {
+            background-color: #4a6cf7;
+            color: white;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            border-color: #4a6cf7;
+            outline: none;
+        }
+        .template-item {
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .template-item:hover {
+            background-color: #f9f9f9;
+        }
+        .template-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .template-preview {
+            color: #666;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .kb-selected-messages {
+            margin-bottom: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        .kb-message-pair {
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .kb-message-question {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .kb-message-answer {
+            color: #666;
+        }
+        .chat-input textarea {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            resize: none;
+            height: 80px;
+        }
+        .send-btn {
+            background-color: #4a6cf7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 80px;
+            cursor: pointer;
+        }
+        .info-panel {
+            width: 300px;
+            background-color: #fff;
+            border-left: 1px solid #eee;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .panel-section {
+            margin-bottom: 25px;
+        }
+        .panel-section h3 {
+            margin: 0 0 15px;
+            font-size: 15px;
+            color: #555;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        .customer-info {
+            margin-bottom: 15px;
+        }
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        .info-label {
+            width: 100px;
+            color: #888;
+            font-size: 13px;
+        }
+        .info-value {
+            flex: 1;
+            font-size: 13px;
+        }
+        .tag {
+            display: inline-block;
+            background-color: #f0f4ff;
+            color: #4a6cf7;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .add-tag-btn {
+            display: inline-block;
+            background: none;
+            border: 1px dashed #4a6cf7;
+            color: #4a6cf7;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .add-tag-btn:hover {
+            background-color: #f0f4ff;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 25px;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 15px;
+        }
+        .timeline-item:before {
+            content: "";
+            position: absolute;
+            left: -25px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #4a6cf7;
+        }
+        .timeline-item:after {
+            content: "";
+            position: absolute;
+            left: -19px;
+            top: 12px;
+            bottom: 0;
+            width: 1px;
+            background-color: #ddd;
+        }
+        .timeline-item:last-child:after {
+            display: none;
+        }
+        .timeline-time {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .timeline-content {
+            font-size: 13px;
+        }
+        .knowledge-item {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .knowledge-item:hover {
+            background-color: #f0f4ff;
+        }
+        .knowledge-title {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        .knowledge-preview {
+            font-size: 12px;
+            color: #666;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+    <script>
+        function openAddTagModal() {
+            document.getElementById('addTagModal').style.display = 'flex';
+        }
+
+        function closeAddTagModal() {
+            document.getElementById('addTagModal').style.display = 'none';
+        }
+
+        function addTag() {
+            const name = document.getElementById('tagName').value;
+            const color = document.getElementById('tagColor').value;
+            const category = document.getElementById('tagCategory').value;
+
+            if (!name) {
+                alert('请输入标签名称');
+                return;
+            }
+
+            const tagsContainer = document.querySelector('.panel-section .tags');
+            const newTag = document.createElement('span');
+            newTag.className = 'tag';
+            newTag.textContent = name;
+            newTag.style.backgroundColor = color + '20';
+            newTag.style.color = color;
+            
+            tagsContainer.insertBefore(newTag, document.querySelector('.add-tag-btn'));
+            
+            closeAddTagModal();
+            document.getElementById('tagName').value = '';
+            document.getElementById('tagColor').value = '#4a6cf7';
+            document.getElementById('tagCategory').value = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const customers = ['#TK-001', '#TK-002', '#TK-003', '#TK-004', '#TK-005'];
+            let currentIndex = 0;
+            
+            const currentCustomerSpan = document.querySelector('.current-customer');
+            const prevButton = document.querySelector('.prev-customer');
+            const nextButton = document.querySelector('.next-customer');
+            
+            prevButton.addEventListener('click', function() {
+                currentIndex = (currentIndex - 1 + customers.length) % customers.length;
+                currentCustomerSpan.textContent = customers[currentIndex];
+            });
+            
+            nextButton.addEventListener('click', function() {
+                currentIndex = (currentIndex + 1) % customers.length;
+                currentCustomerSpan.textContent = customers[currentIndex];
+            });
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h2>工单系统</h2>
+        </div>
+        <div class="user-menu">
+            <img src="https://via.placeholder.com/35" alt="客服头像">
+            <span>王五（在线）</span>
+            <a href="login.html">退出</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="status-filters">
+                <h3>工单列表</h3>
+                <div class="customer-navigation">
+                    <button class="nav-btn prev-customer" title="上一个客户">↑</button>
+                    <span class="current-customer">#TK-001</span>
+                    <button class="nav-btn next-customer" title="下一个客户">↓</button>
+                </div>
+                <div class="filter-options">
+                    <button class="active">我的工单</button>
+                    <button>待分配</button>
+                    <button>所有工单</button>
+                </div>
+                <div class="filter-options">
+                    <button class="active">全部状态</button>
+                    <button>待处理</button>
+                    <button>处理中</button>
+                    <button>已解决</button>
+                </div>
+            </div>
+            <div class="ticket-list">
+                <div class="ticket-item active">
+                    <div class="priority-indicator priority-medium"></div>
+                    <div class="ticket-header">
+                        <span class="ticket-id">#TK-001</span>
+                        <span class="ticket-status processing">处理中</span>
+                    </div>
+                    <div class="ticket-title">云服务器性能配置咨询</div>
+                    <div class="ticket-meta">
+                        <span>#TK-001</span>
+                        <span>10分钟前</span>
+                    </div>
+                    <button class="mark-unread-btn" title="标记为未读" onclick="markAsUnread(this)">⊙</button>
+                </div>
+                <div class="ticket-item">
+                    <div class="priority-indicator priority-high"></div>
+                    <div class="ticket-header">
+                        <span class="ticket-id">#TK-002</span>
+                        <span class="ticket-status">待处理</span>
+                    </div>
+                    <div class="ticket-title">数据库迁移到云服务器咨询</div>
+                    <div class="ticket-meta">
+                        <span>李明</span>
+                        <span>25分钟前</span>
+                    </div>
+                    <button class="mark-unread-btn" title="标记为未读" onclick="markAsUnread(this)">⊙</button>
+                </div>
+                <div class="ticket-item">
+                    <div class="priority-indicator priority-low"></div>
+                    <div class="ticket-header">
+                        <span class="ticket-id">#TK-003</span>
+                        <span class="ticket-status">待处理</span>
+                    </div>
+                    <div class="ticket-title">云服务器弹性伸缩配置问题</div>
+                    <div class="ticket-meta">
+                        <span>王丽</span>
+                        <span>2小时前</span>
+                    </div>
+                </div>
+                <div class="ticket-item">
+                    <div class="priority-indicator priority-medium"></div>
+                    <div class="ticket-header">
+                        <span class="ticket-id">#TK-004</span>
+                        <span class="ticket-status processing">处理中</span>
+                    </div>
+                    <div class="ticket-title">云服务器安全组配置咨询</div>
+                    <div class="ticket-meta">
+                        <span>刘强</span>
+                        <span>3小时前</span>
+                    </div>
+                </div>
+                <div class="ticket-item">
+                    <div class="priority-indicator priority-low"></div>
+                    <div class="ticket-header">
+                        <span class="ticket-id">#TK-005</span>
+                        <span class="ticket-status resolved">已解决</span>
+                    </div>
+                    <div class="ticket-title">对象存储使用配额调整</div>
+                    <div class="ticket-meta">
+                        <span>赵梅</span>
+                        <span>昨天</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="chat-area">
+                <div class="chat-header">
+                    <div class="ticket-info">
+                        <h2>云服务器性能配置咨询</h2>
+                        <p>工单 #TK-001 | 创建时间: 2023-07-15 14:30 | 优先级: 中</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="action-button transfer-btn">
+                            <i>↗</i> 转派
+                        </button>
+                        <button class="action-button" onclick="openRequirementModal()" style="background-color: #e6f7ff; color: #1890ff;">
+                            <i>+</i> 提需求
+                        </button>
+                        <button class="action-button escalate-btn">
+                            <i>↑</i> 升级
+                        </button>
+                        <button class="action-button resolve-btn">
+                            <i>✓</i> 解决
+                        </button>
+                    </div>
+                </div>
+                <div class="messages">
+                    <div class="message-wrapper">
+                        <input type="checkbox" class="message-select" title="选择此消息">
+                        <div class="message message-customer">
+                            <div class="message-info">
+                                <span class="message-sender">#TK-001</span>
+                                <span class="message-time">14:30</span>
+                            </div>
+                            <div class="message-content">
+                                您好，我们公司准备购买云服务器用于部署电商网站，日活用户约10万，请问推荐什么配置？
+                            </div>
+                        </div>
+                    </div>
+                    <div class="message-wrapper">
+                        <div class="message message-internal" style="margin-left: 24px;">
+                            <div class="message-info">
+                                <span class="message-sender">系统</span>
+                                <span class="message-time">14:31</span>
+                            </div>
+                            <div class="message-content">
+                                工单已自动分配给云服务器技术支持专员 王五
+                            </div>
+                        </div>
+                    </div>
+                    <div class="message-wrapper">
+                        <input type="checkbox" class="message-select" title="选择此消息">
+                        <div class="message message-support">
+                            <div class="message-info">
+                                <span class="message-sender">王五</span>
+                                <span class="message-time">14:35</span>
+                            </div>
+                            <div class="message-content">
+                                您好，感谢您的咨询。为了更好地为您推荐配置，请问您的网站主要业务类型是什么？预计的并发访问量是多少？
+                            </div>
+                        </div>
+                    </div>
+                    <div class="message-wrapper">
+                        <input type="checkbox" class="message-select" title="选择此消息">
+                        <div class="message message-customer">
+                            <div class="message-info">
+                                <span class="message-sender">#TK-001</span>
+                                <span class="message-time">14:38</span>
+                            </div>
+                            <div class="message-content">
+                                我们是一个中型电商网站，主要是B2C模式。高峰期并发访问量预计在3000左右，需要考虑双十一这样的活动期间的性能需求。
+                            </div>
+                        </div>
+                    </div>
+                    <div class="message-wrapper">
+                        <div class="message message-internal" style="margin-left: 24px;">
+                            <div class="message-info">
+                                <span class="message-sender">王五</span>
+                                <span class="message-time">14:40</span>
+                            </div>
+                            <div class="message-content">
+                                根据用户描述，这是一个中型电商网站，需要考虑高并发场景下的性能需求，建议采用弹性伸缩方案
+                            </div>
+                        </div>
+                    </div>
+                    <div class="message-wrapper">
+                        <input type="checkbox" class="message-select" title="选择此消息">
+                        <div class="message message-support">
+                            <div class="message-info">
+                                <span class="message-sender">王五</span>
+                                <span class="message-time">14:42</span>
+                            </div>
+                            <div class="message-content">
+                                根据您提供的信息，我建议采用以下配置：
+
+                                1. 基础配置：
+                                - CPU：8核
+                                - 内存：16GB
+                                - 系统盘：100GB SSD
+                                - 数据盘：500GB高性能云盘
+                                - 带宽：按量付费，峰值10Mbps
+
+                                2. 架构建议：
+                                - 使用负载均衡服务
+                                - 配置弹性伸缩组
+                                - 多可用区部署
+
+                                预估成本：基础配置每月约2000-3000元（不含带宽费用）
+                            </div>
+                        </div>
+                    </div>
+                    <div class="message-wrapper">
+                        <input type="checkbox" class="message-select" title="选择此消息">
+                        <div class="message message-customer">
+                            <div class="message-info">
+                                <span class="message-sender">#TK-001</span>
+                                <span class="message-time">14:45</span>
+                            </div>
+                            <div class="message-content">
+                                配置方案看起来不错。请问负载均衡和弹性伸缩如何配置？另外，数据库是否需要单独的服务器？
+                            </div>
+                        </div>
+                    </div>
+                    <div class="message-wrapper">
+                        <input type="checkbox" class="message-select" title="选择此消息">
+                        <div class="message message-support">
+                            <div class="message-info">
+                                <span class="message-sender">王五</span>
+                                <span class="message-time">14:47</span>
+                            </div>
+                            <div class="message-content">
+                                关于您的问题：
+
+                                1. 负载均衡配置：
+                                - 创建负载均衡实例
+                                - 配置监听端口（如80/443）
+                                - 设置后端服务器组
+                                - 配置健康检查
+
+                                2. 弹性伸缩配置：
+                                - 创建伸缩组，绑定负载均衡
+                                - 设置实例配置模板
+                                - 配置扩缩容规则（如CPU>70%自动扩容）
+
+                                3. 数据库建议：
+                                - 建议使用独立的数据库服务器
+                                - 推荐配置：4核8GB起，根据数据量调整
+                                - 建议采用主从架构保证高可用
+
+                                需要我为您详细说明具体的配置步骤吗？
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <div class="toolbar">
+                        <div class="toolbar-left">
+                            <button id="template-btn" title="插入模板回复"><i>📋</i>模板回复</button>
+                            <button id="note-btn" title="添加内部注释"><i>📝</i>内部注释</button>
+                            <button id="attach-btn" title="附加文件"><i>📎</i>附件</button>
+                            <button id="kb-link-btn" title="插入知识库链接"><i>📚</i>知识库</button>
+                        </div>
+                        <div class="toolbar-right">
+                            <button id="save-to-kb-btn" class="save-to-kb disabled" title="将选中的问答对保存到FastGPT知识库"><i>💾</i>保存到知识库</button>
+                        </div>
+                    </div>
+                    <div class="input-container">
+                        <textarea placeholder="输入回复内容..."></textarea>
+                        <button class="send-btn">发送</button>
+                    </div>
+                </div>
+            </div>
+            <div class="info-panel">
+                <div class="panel-section">
+                    <h3>用户信息</h3>
+                    <div class="customer-info">
+                        <div class="info-row">
+                            <div class="info-label">姓名：</div>
+                            <div class="info-value">#TK-001</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">邮箱：</div>
+                            <div class="info-value">zhangsan@example.com</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">电话：</div>
+                            <div class="info-value">138****1234</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">账户等级：</div>
+                            <div class="info-value">企业会员</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">注册时间：</div>
+                            <div class="info-value">2023-01-15</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>工单标签</h3>
+                    <div class="tags">
+                        <span class="tag">云服务器</span>
+                        <span class="tag">性能配置</span>
+                        <span class="tag">弹性伸缩</span>
+                        <span class="tag">架构咨询</span>
+                        <button class="add-tag-btn" onclick="openAddTagModal()">+ 添加标签</button>
+                    </div>
+                </div>
+
+                <!-- 添加标签弹窗 -->
+                <div id="addTagModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>添加标签</h3>
+                            <button class="modal-close" onclick="closeAddTagModal()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="tagName">标签名称</label>
+                                <input type="text" id="tagName" class="form-control" placeholder="请输入标签名称">
+                            </div>
+                            <div class="form-group">
+                                <label for="tagColor">标签颜色</label>
+                                <input type="color" id="tagColor" class="form-control" value="#4a6cf7">
+                            </div>
+                            <div class="form-group">
+                                <label for="tagCategory">标签分类</label>
+                                <select id="tagCategory" class="form-control">
+                                    <option value="">请选择分类</option>
+                                    <option value="product">产品相关</option>
+                                    <option value="service">服务相关</option>
+                                    <option value="priority">优先级</option>
+                                    <option value="status">状态</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn modal-btn-cancel" onclick="closeAddTagModal()">取消</button>
+                            <button class="modal-btn modal-btn-primary" onclick="addTag()">确定</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>工单历史</h3>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-time">2023-07-15 14:30</div>
+                            <div class="timeline-content">用户创建工单</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-time">2023-07-15 14:31</div>
+                            <div class="timeline-content">工单分配给客服 王五</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-time">2023-07-15 14:35</div>
+                            <div class="timeline-content">客服首次回复</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-time">2023-07-15 14:42</div>
+                            <div class="timeline-content">状态变更为"处理中"</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>相关知识库</h3>
+                    <div class="knowledge-item">
+                        <div class="knowledge-title">云服务器配置最佳实践</div>
+                        <div class="knowledge-preview">包含各种业务场景下的推荐配置方案...</div>
+                    </div>
+                    <div class="knowledge-item">
+                        <div class="knowledge-title">电商网站架构设计指南</div>
+                        <div class="knowledge-preview">详细介绍电商网站的服务器架构、性能优化方案...</div>
+                    </div>
+                    <div class="knowledge-item">
+                        <div class="knowledge-title">负载均衡和弹性伸缩配置指南</div>
+                        <div class="knowledge-preview">包含负载均衡配置步骤和弹性伸缩策略设置...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模板回复弹窗 -->
+    <div id="template-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>选择回复模板</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="template-item">
+                    <div class="template-title">问题确认</div>
+                    <div class="template-preview">您好，感谢您联系我们。为了更好地帮助您解决问题，请问您能提供更多详细信息吗？</div>
+                </div>
+                <div class="template-item">
+                    <div class="template-title">技术支持</div>
+                    <div class="template-preview">您好，我是技术支持团队的客服。我会协助您解决这个技术问题，请稍等片刻，我正在查询相关信息。</div>
+                </div>
+                <div class="template-item">
+                    <div class="template-title">感谢反馈</div>
+                    <div class="template-preview">非常感谢您的反馈！我们会认真考虑您的建议，并努力改进我们的产品和服务。</div>
+                </div>
+                <div class="template-item">
+                    <div class="template-title">问题解决确认</div>
+                    <div class="template-preview">请问我提供的解决方案是否有帮助？如果您的问题已解决，我们可以关闭此工单；如果还有其他问题，请告诉我。</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel">取消</button>
+                <button class="modal-btn modal-btn-primary">插入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内部注释弹窗 -->
+    <div id="note-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加内部注释</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="note-content">注释内容</label>
+                    <textarea id="note-content" class="form-control" rows="5" placeholder="输入内部注释内容，仅团队成员可见"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel">取消</button>
+                <button class="modal-btn modal-btn-primary">添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 附件上传弹窗 -->
+    <div id="attach-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>上传附件</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="file-upload">选择文件</label>
+                    <input type="file" id="file-upload" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="file-description">文件描述</label>
+                    <input type="text" id="file-description" class="form-control" placeholder="添加文件描述（可选）">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel">取消</button>
+                <button class="modal-btn modal-btn-primary">上传</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 知识库链接弹窗 -->
+    <div id="kb-link-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>插入知识库链接</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="kb-search">搜索知识库</label>
+                    <input type="text" id="kb-search" class="form-control" placeholder="输入关键词搜索知识库文章">
+                </div>
+                <div class="template-item">
+                    <div class="template-title">激活码常见问题解答</div>
+                    <div class="template-preview">包含激活码无效、版本不匹配等解决方案...</div>
+                </div>
+                <div class="template-item">
+                    <div class="template-title">个人版与企业版的区别</div>
+                    <div class="template-preview">详细说明两个版本的功能差异和适用场景...</div>
+                </div>
+                <div class="template-item">
+                    <div class="template-title">软件安装指南</div>
+                    <div class="template-preview">各操作系统下的安装步骤和常见问题...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel">取消</button>
+                <button class="modal-btn modal-btn-primary">插入链接</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 保存到知识库弹窗 -->
+    <div id="save-kb-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>保存到知识库</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="kb-selected-messages">
+                    <div class="kb-message-pair">
+                        <div class="kb-message-question">问题：您好，我购买的产品激活码输入后提示无效，请问如何解决？</div>
+                        <div class="kb-message-answer">回答：您好，很抱歉给您带来不便。请确认您输入的激活码是否正确，注意区分字母大小写和数字"0"与字母"O"。如果确认输入无误，可能是您购买的版本与产品不匹配，企业版激活码无法用于个人版产品。建议您检查产品版本，或联系我们的销售部门进行确认。</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="kb-title">知识点标题</label>
+                    <input type="text" id="kb-title" class="form-control" value="产品激活码无效问题解决方案">
+                </div>
+                <div class="form-group">
+                    <label for="kb-category">分类</label>
+                    <select id="kb-category" class="form-control">
+                        <option value="activation">激活问题</option>
+                        <option value="installation">安装问题</option>
+                        <option value="usage">使用指南</option>
+                        <option value="troubleshooting">故障排除</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="kb-tags">标签</label>
+                    <input type="text" id="kb-tags" class="form-control" placeholder="输入标签，用逗号分隔" value="激活码,企业版,版本不匹配">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel">取消</button>
+                <button class="modal-btn modal-btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 转派工单弹窗 -->
+    <div class="modal" id="transfer-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>转派工单</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="transfer-to">转派给</label>
+                    <select id="transfer-to" class="form-control">
+                        <option value="">请选择客服人员</option>
+                        <option value="1">李四（在线）</option>
+                        <option value="2">张明（在线）</option>
+                        <option value="3">赵丽（离线）</option>
+                        <option value="4">技术支持组</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transfer-reason">转派原因</label>
+                    <textarea id="transfer-reason" class="form-control" rows="3" placeholder="请输入转派原因..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="transfer-note">备注（可选）</label>
+                    <textarea id="transfer-note" class="form-control" rows="2" placeholder="添加备注信息..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel">取消</button>
+                <button class="modal-btn modal-btn-primary">确认转派</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 升级工单弹窗 -->
+    <div class="modal" id="escalate-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>升级工单</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="escalate-priority">优先级</label>
+                    <select id="escalate-priority" class="form-control">
+                        <option value="low">低</option>
+                        <option value="medium" selected>中</option>
+                        <option value="high">高</option>
+                        <option value="urgent">紧急</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="escalate-to">升级至</label>
+                    <select id="escalate-to" class="form-control">
+                        <option value="">请选择升级对象</option>
+                        <option value="supervisor">主管</option>
+                        <option value="manager">经理</option>
+                        <option value="tech-team">技术团队</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="escalate-reason">升级原因</label>
+                    <textarea id="escalate-reason" class="form-control" rows="3" placeholder="请输入升级原因..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel">取消</button>
+                <button class="modal-btn modal-btn-primary">确认升级</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 解决工单弹窗 -->
+    <div class="modal" id="resolve-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>解决工单</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="resolve-solution">解决方案</label>
+                    <textarea id="resolve-solution" class="form-control" rows="4" placeholder="请描述解决方案..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="resolve-category">解决类型</label>
+                    <select id="resolve-category" class="form-control">
+                        <option value="">请选择解决类型</option>
+                        <option value="solved">已解决</option>
+                        <option value="workaround">临时解决方案</option>
+                        <option value="auto-resolved">自动解决</option>
+                        <option value="not-reproducible">无法复现</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>是否添加到知识库</label>
+                    <div>
+                        <input type="checkbox" id="add-to-kb" checked>
+                        <label for="add-to-kb">将此解决方案添加到知识库</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>是否发送满意度调查</label>
+                    <div>
+                        <input type="checkbox" id="send-survey" checked>
+                        <label for="send-survey">向用户发送满意度调查</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel">取消</button>
+                <button class="modal-btn modal-btn-primary">确认解决</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 需求记录模态框 -->
+    <div id="requirementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>记录产品需求</h3>
+                <button class="modal-close" onclick="closeRequirementModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="requirement-title">需求标题</label>
+                    <input type="text" id="requirement-title" class="form-control" placeholder="请输入需求标题">
+                </div>
+                <div class="form-group">
+                    <label for="requirement-description">需求描述</label>
+                    <textarea id="requirement-description" class="form-control" rows="4" placeholder="请详细描述需求内容"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="requirement-product">相关产品</label>
+                    <select id="requirement-product" class="form-control">
+                        <option value="">请选择产品</option>
+                        <option value="product1">产品A</option>
+                        <option value="product2">产品B</option>
+                        <option value="product3">产品C</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="requirement-priority">优先级</label>
+                    <select id="requirement-priority" class="form-control">
+                        <option value="low">低</option>
+                        <option value="medium">中</option>
+                        <option value="high">高</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeRequirementModal()">取消</button>
+                <button class="modal-btn modal-btn-primary" onclick="submitRequirement()">提交</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 需求记录功能
+        function openRequirementModal() {
+            document.getElementById('requirementModal').style.display = 'flex';
+        }
+
+        function closeRequirementModal() {
+            document.getElementById('requirementModal').style.display = 'none';
+        }
+
+        function submitRequirement() {
+            const title = document.getElementById('requirement-title').value;
+            const description = document.getElementById('requirement-description').value;
+            const product = document.getElementById('requirement-product').value;
+            const priority = document.getElementById('requirement-priority').value;
+
+            if (!title || !description || !product) {
+                alert('请填写完整的需求信息');
+                return;
+            }
+
+            // 这里可以添加提交需求到后端的代码
+            alert('需求已记录');
+            closeRequirementModal();
+        }
+
+        // 消息选择功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageCheckboxes = document.querySelectorAll('.message-select');
+            const saveToKbBtn = document.getElementById('save-to-kb-btn');
+            
+            // 监听消息选择框变化
+            messageCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const selectedCount = document.querySelectorAll('.message-select:checked').length;
+                    
+                    // 至少选择一个问题和一个回答才能启用保存按钮
+                    if (selectedCount >= 2) {
+                        saveToKbBtn.classList.remove('disabled');
+                    } else {
+                        saveToKbBtn.classList.add('disabled');
+                    }
+                    
+                    // 高亮选中的消息
+                    const messageDiv = this.nextElementSibling;
+                    if (this.checked) {
+                        messageDiv.classList.add('selected');
+                    } else {
+                        messageDiv.classList.remove('selected');
+                    }
+                });
+            });
+            
+            // 工单操作按钮
+            const transferBtn = document.querySelector('.transfer-btn');
+            const escalateBtn = document.querySelector('.escalate-btn');
+            const resolveBtn = document.querySelector('.resolve-btn');
+            
+            // 添加工单操作按钮点击事件
+            if (transferBtn) {
+                transferBtn.addEventListener('click', function() {
+                    document.getElementById('transfer-modal').style.display = 'flex';
+                });
+            }
+            
+            if (escalateBtn) {
+                escalateBtn.addEventListener('click', function() {
+                    document.getElementById('escalate-modal').style.display = 'flex';
+                });
+            }
+            
+            if (resolveBtn) {
+                resolveBtn.addEventListener('click', function() {
+                    document.getElementById('resolve-modal').style.display = 'flex';
+                });
+            }
+            
+            // 模态框功能
+            const modals = {
+                'template-btn': 'template-modal',
+                'note-btn': 'note-modal',
+                'attach-btn': 'attach-modal',
+                'kb-link-btn': 'kb-link-modal',
+                'save-to-kb-btn': 'save-kb-modal'
+            };
+            
+            // 打开模态框
+            Object.keys(modals).forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                const modal = document.getElementById(modals[btnId]);
+                
+                if (btn && modal) {
+                    btn.addEventListener('click', function() {
+                        if (btnId === 'save-to-kb-btn' && btn.classList.contains('disabled')) {
+                            return; // 如果保存按钮被禁用，不执行操作
+                        }
+                        modal.style.display = 'flex';
+                    });
+                }
+            });
+            
+            // 关闭模态框
+            document.querySelectorAll('.modal-close, .modal-btn-cancel').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const modal = this.closest('.modal');
+                    modal.style.display = 'none';
+                });
+            });
+            
+            // 点击模态框外部关闭
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.style.display = 'none';
+                    }
+                });
+            });
+            
+            // 模板回复插入功能
+            document.querySelectorAll('#template-modal .template-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const preview = this.querySelector('.template-preview').textContent;
+                    document.querySelector('.chat-input textarea').value = preview;
+                    document.getElementById('template-modal').style.display = 'none';
+                });
+            });
+            
+            // 知识库链接插入功能
+            document.querySelectorAll('#kb-link-modal .template-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const title = this.querySelector('.template-title').textContent;
+                    const textarea = document.querySelector('.chat-input textarea');
+                    textarea.value += `\n\n参考知识库：[${title}]`;
+                    document.getElementById('kb-link-modal').style.display = 'none';
+                });
+            });
+            
+            // 保存到知识库功能
+            document.querySelector('#save-kb-modal .modal-btn-primary').addEventListener('click', function() {
+                // 模拟保存成功
+                alert('问答对已成功保存到知识库！');
+                document.getElementById('save-kb-modal').style.display = 'none';
+                
+                // 取消所有选中状态
+                document.querySelectorAll('.message-select:checked').forEach(checkbox => {
+                    checkbox.checked = false;
+                    checkbox.nextElementSibling.classList.remove('selected');
+                });
+                
+                // 禁用保存按钮
+                saveToKbBtn.classList.add('disabled');
+            });
+            
+            // 转派工单功能
+            document.querySelector('#transfer-modal .modal-btn-primary').addEventListener('click', function() {
+                const transferTo = document.getElementById('transfer-to').value;
+                if (!transferTo) {
+                    alert('请选择要转派的客服人员');
+                    return;
+                }
+                
+                // 模拟转派成功
+                alert('工单已成功转派！');
+                document.getElementById('transfer-modal').style.display = 'none';
+            });
+            
+            // 升级工单功能
+            document.querySelector('#escalate-modal .modal-btn-primary').addEventListener('click', function() {
+                const escalateTo = document.getElementById('escalate-to').value;
+                if (!escalateTo) {
+                    alert('请选择升级对象');
+                    return;
+                }
+                
+                // 模拟升级成功
+                alert('工单已成功升级！');
+                document.getElementById('escalate-modal').style.display = 'none';
+            });
+            
+            // 解决工单功能
+            document.querySelector('#resolve-modal .modal-btn-primary').addEventListener('click', function() {
+                const solution = document.getElementById('resolve-solution').value;
+                const category = document.getElementById('resolve-category').value;
+                
+                if (!solution) {
+                    alert('请描述解决方案');
+                    return;
+                }
+                
+                if (!category) {
+                    alert('请选择解决类型');
+                    return;
+                }
+                
+                // 模拟解决成功
+                alert('工单已成功解决！');
+                document.getElementById('resolve-modal').style.display = 'none';
+            });
+        });
+    </script>
+<script>
+function markAsUnread(button) {
+    const ticketItem = button.closest('.ticket-item');
+    ticketItem.classList.add('unread');
+}
+</script>
+</body>
+</html>
